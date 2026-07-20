@@ -1,122 +1,137 @@
 # NAFAS — Postpartum Recovery, Shared
 
-> An Arabic-first AI companion that turns a mother's unfiltered postpartum story into safety checks, a focused 24-hour plan, and clear support tasks for her care circle.
+> One honest postpartum story becomes a safety check, a six-dimension recovery map, a focused 24-hour plan, and one clear task for the care circle.
 
-NAFAS (نَفَس) is a working prototype built for the **OpenAI Build Week Challenge 2026** in the **Apps for Your Life** track.
+**Live judge demo:** https://nafas-postpartum-2026.amiraabdalrazig.chatgpt.site
+
+NAFAS (نَفَس) is an Arabic-first, bilingual working prototype built during **OpenAI Build Week 2026** for the **Apps for Your Life** track.
 
 ## The problem
 
-After birth, a mother may say “I’m tired” while facing pain, sleep deprivation, feeding difficulties, emotional distress, inadequate nutrition, and a lack of practical support at the same time. Existing tools often add articles and checklists to an already overloaded person.
+Postpartum recovery is not one symptom. A mother may say “I am tired” while carrying pain, fragmented sleep, feeding demands, low food intake, emotional distress, and inadequate practical support at the same time.
 
-NAFAS reduces cognitive load. A mother speaks or types naturally; the product organizes her experience into a small, actionable recovery plan and makes support a shared responsibility.
+Most tools respond with more information for the mother to process. NAFAS takes the opposite approach: it reduces decisions, surfaces safety signals, and transfers one concrete piece of work to her care circle.
 
-## Core experience
+## The end-to-end experience
 
-1. **Unfiltered check-in** — Arabic speech recognition or text, with no need to organize symptoms.
-2. **Deterministic safety gate** — explicit red-flag rules run before generative personalization.
-3. **GPT-5.6 structured analysis** — six recovery-load dimensions, up to three follow-up questions, and no more than four actions.
-4. **Shared-care task** — converts “support her” into one clear task for a chosen care-circle member.
-5. **Provider summary** — separates direct reports, organized concerns, and unknown information.
-6. **Resilient demo mode** — a complete judge-friendly flow remains available if the API is unavailable.
+1. **Unfiltered check-in** — speak or type naturally in Arabic or English.
+2. **Privacy gate** — direct identifiers such as emails and phone-like numbers are rejected before analysis.
+3. **Deterministic safety path** — selected explicit red-flag phrases are checked before GPT is called.
+4. **GPT-5.6 structured analysis** — strict JSON Schema returns exactly six recovery-load dimensions, up to three follow-up questions, and three or four actions.
+5. **Recovery fingerprint** — a visual map shows physical recovery, sleep, mood, nutrition, infant feeding, and support together.
+6. **Shared 24-hour plan** — every action has a time, owner, and low-cognitive-load instruction.
+7. **Care-circle handoff** — the app turns “support her” into one ready-to-share task and previews the caregiver experience.
+8. **Clinician-ready summary** — mother-reported information, organized concerns, and unknown facts remain visibly separated.
 
-## Why it is different
+## Judge Mode
 
-- **Arabic-first, not translated later:** accepts natural Arabic and culturally specific descriptions of postpartum distress.
-- **Less work for the mother:** the output is limited to a 24-hour plan with four actions maximum.
-- **Recovery as a system:** physical recovery, sleep, mood, nutrition, feeding, and support are shown together.
-- **Support coordination:** tasks are moved to the care circle instead of added to the mother.
-- **Source separation:** the provider view distinguishes what the mother said, what the system organized, and what remains unknown.
+Select **EN • JUDGE MODE** in the live product, then choose one of three fictional, de-identified scenarios:
 
-## Safety architecture
+- **Routine recovery:** GPT-5.6 creates a focused shared plan.
+- **Same-day review:** deterministic rules preserve an urgent signal while GPT organizes the next actions.
+- **Immediate action:** the deterministic emergency path bypasses the model completely and returns immediate human-help steps.
 
-NAFAS is a recovery-navigation prototype, not a diagnostic or treatment tool.
+The interface shows the active execution path, response time, privacy gate, deterministic safety check, structured output, and `store: false` status.
 
-- Deterministic red-flag matching is evaluated independently of GPT-5.6.
-- The model receives the rule-engine result and is instructed never to downgrade it.
-- The model may not diagnose, prescribe, change medication, or reassure away risk.
-- Missing findings are explicitly represented as unknowns.
-- No information is shared without the mother’s action and consent.
+## What makes NAFAS different
+
+- **Arabic-first, not translated later.** It is designed around natural Arabic postpartum language and can switch to a complete English judge experience.
+- **Safety before personalization.** GPT is not asked to carry the whole safety burden.
+- **Recovery as a system.** Six interacting dimensions replace isolated symptom tracking.
+- **Less work for the mother.** The output is deliberately capped at four actions.
+- **Support becomes observable.** One specific task is handed to the care circle instead of another suggestion being added to the mother.
+- **Source is separated from inference.** The provider view preserves what was reported and labels what remains unknown.
+
+## Technical architecture
+
+NAFAS ships as a dependency-light JavaScript Worker with a server-rendered, responsive application and JSON API in one deployable artifact.
+
+- OpenAI Responses API
+- GPT-5.6 Terra
+- `reasoning.effort: low` for a latency-sensitive workflow
+- strict JSON Schema Structured Outputs
+- server-only API key and `store: false`
+- bilingual RTL/LTR interface
+- browser Web Speech API
+- deterministic safety and PII gates
+- timeout-bounded safe fallback
+- Node test runner with 20 Arabic/English safety and privacy evaluations
+- ChatGPT Sites deployment
+
+### Request flow
+
+```text
+Voice/text
+   ↓
+PII gate
+   ↓
+Deterministic red-flag check ── emergency → immediate human-help path
+   ↓ routine / urgent
+GPT-5.6 Terra + strict schema
+   ↓
+Recovery map + 24h plan + care task + provider summary
+```
+
+## Safety boundaries
+
+NAFAS is a competition prototype for recovery navigation and communication support. It does **not** diagnose, prescribe, change medication, establish that someone is safe, or replace professional or emergency care.
+
+- An emergency match returns without a model call.
+- The model receives the deterministic priority and may not downgrade it.
+- Missing safety findings must be represented as unknowns.
+- The model may not invent a reassuring negative finding.
+- Sharing requires an explicit user action.
+- The prototype rejects common direct identifiers and does not store the model response.
+- Real-world use would require clinical governance, broader Arabic-dialect evaluation, privacy engineering, human-factors testing, and regulatory review.
 
 See [docs/SAFETY.md](docs/SAFETY.md) for the prototype threat model and limitations.
 
-## Technology
+## Validate the source
 
-- React 19 + Vite
-- Node.js + Express
-- OpenAI Responses API
-- GPT-5.6 with strict JSON Schema output
-- Browser Web Speech API
-- Node test runner
-- Responsive, RTL-first CSS
+Requirements: Node.js 20+.
 
-## Run locally
-
-Requirements: Node.js 20+ and an OpenAI API key with API billing enabled.
-
-~~~bash
-npm install
-cp .env.example .env
-~~~
-
-Set **OPENAI_API_KEY** in .env, then:
-
-~~~bash
-npm run build
-npm start
-~~~
-
-Open http://localhost:3000.
-
-Run the deterministic safety tests:
-
-~~~bash
+```bash
 npm test
-~~~
+npm run lint
+npm run build
+npm run validate
+```
 
-Never commit .env or an API key. The application reads the key server-side only.
+The OpenAI key is configured only in the hosted runtime. Never commit `.env` or an API key.
 
-## Judge demo
+## How I collaborated with Codex
 
-Select **“جرّبي حالة أم بعد قيصرية”** for a deterministic end-to-end demo. To see a live GPT-5.6 response, type or dictate a new check-in and choose **“افهمي يومي”**.
+I am a clinical pharmacist, maternal-health creator, and non-technical founder. I brought the clinical framing, lived postpartum context, Arabic-language nuance, recovery dimensions, and the product principle that AI should remove work from the mother rather than add more advice.
 
-Sample Arabic input:
+Codex turned those decisions into a tested, public product during Build Week. It accelerated:
 
-~~~text
-من أمس جرح القيصرية يوجعني أكثر، ونمت ثلاث ساعات فقط. أبكي بدون سبب وأشعر أني أم فاشلة. الطفل يرضع طول الوقت وما أكلت إلا مرة واحدة اليوم.
-~~~
+- product decomposition from an unstructured idea into a bounded end-to-end journey;
+- the bilingual Arabic RTL and English judge experience;
+- deterministic safety and privacy gates;
+- the GPT-5.6 strict output schema and server-only integration;
+- the recovery visualization, care-circle handoff, provider summary, and sharing interactions;
+- automated Arabic/English safety evaluations;
+- responsive mobile design, failure handling, documentation, and deployment.
 
-Expected safety gate: **urgent**, rule: **wound**.
+The most important human decisions remained mine: the audience, unmet problem, clinical boundaries, cultural context, visual tone, what the model must never do, and the definition of meaningful support.
 
-## How Codex accelerated the build
+## Repository guide
 
-The founder is a clinical pharmacist, maternal-health creator, and non-technical builder. Codex turned her domain knowledge and lived postpartum experience into a runnable product during Build Week by:
-
-- scaffolding the React/Node application;
-- implementing the Arabic RTL product experience;
-- converting safety requirements into a deterministic gate and automated tests;
-- designing the GPT-5.6 JSON schema and server-only integration;
-- iterating on mobile UX, fallback behavior, documentation, and deployment readiness.
-
-The key human decisions remained clinical framing, product scope, cultural context, safety boundaries, recovery dimensions, and the principle that AI should transfer work away from the mother.
-
-## Current prototype limitations
-
-- Red-flag phrase coverage is intentionally small and is not clinically validated.
-- Browser speech recognition support varies by browser.
-- The sample profile is fixed for the Build Week demo.
-- No user account, database, or persistent health record is included.
-- The prototype has not undergone clinical-device validation or regulatory review.
+- `worker/index.js` — complete UI, API, safety gate, GPT integration, and safe fallback
+- `test/safety.test.js` — Arabic/English safety and privacy evaluation suite
+- `docs/SAFETY.md` — threat model, mitigations, and known limitations
+- `scripts/build.sh` — creates the deployable Worker artifact
+- `scripts/validate-artifact.mjs` — validates the final artifact entrypoint
 
 ## Roadmap
 
-- Evidence-reviewed safety pathways with qualified maternal-health professionals
-- Broader Arabic dialect evaluation
-- Consent-led care-circle collaboration
-- Longitudinal Recovery Load trends
-- Usability testing with postpartum mothers
-- Privacy, security, clinical, and regulatory review before real-world deployment
+- evidence-reviewed pathways with qualified maternal-health professionals
+- broader Arabic dialect and adversarial safety evaluations
+- consent-led, authenticated care-circle collaboration
+- longitudinal recovery-load trends
+- usability research with postpartum mothers and families
+- privacy, security, clinical, and regulatory review before real-world deployment
 
 ## License
 
-Code is available under the [MIT License](LICENSE). The product name, clinical content, and visual identity are prototype materials and do not constitute medical advice.
-
+Source code is available under the [MIT License](LICENSE). The NAFAS name, clinical content, and visual identity are prototype materials and do not constitute medical advice.
